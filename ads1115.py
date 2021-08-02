@@ -211,7 +211,7 @@ class ADS1115:
             "in3_gnd": self._calculate_config_register(_Multiplexer.IN3_GND.value)
         }
 
-    def read_analog_input(self, config_register: int) -> float:
+    def _read_analog_input(self, config_register: int) -> float:
 
         step_size = {
             0: 0.1875,
@@ -249,30 +249,30 @@ class ADS1115:
         return total / self.sampling
 
     def read_input_in0_in1(self) -> float:
-        return self.read_analog_input(self.config_registers["in0_in1"])
+        return self._read_analog_input(self.config_registers["in0_in1"])
 
     def read_input_in0_in3(self) -> float:
-        return self.read_analog_input(self.config_registers["in0_in3"])
+        return self._read_analog_input(self.config_registers["in0_in3"])
 
     def read_input_in1_in3(self) -> float:
-        return self.read_analog_input(self.config_registers["in1_in3"])
+        return self._read_analog_input(self.config_registers["in1_in3"])
 
     def read_input_in2_in3(self) -> float:
-        return self.read_analog_input(self.config_registers["in2_in3"])
+        return self._read_analog_input(self.config_registers["in2_in3"])
 
     def read_input_in0_gnd(self) -> float:
-        return self.read_analog_input(self.config_registers["in0_gnd"])
+        return self._read_analog_input(self.config_registers["in0_gnd"])
 
     def read_input_in1_gnd(self) -> float:
-        return self.read_analog_input(self.config_registers["in1_gnd"])
+        return self._read_analog_input(self.config_registers["in1_gnd"])
 
     def read_input_in2_gnd(self) -> float:
-        return self.read_analog_input(self.config_registers["in2_gnd"])
+        return self._read_analog_input(self.config_registers["in2_gnd"])
 
     def read_input_in3_gnd(self) -> float:
-        return self.read_analog_input(self.config_registers["in3_gnd"])
+        return self._read_analog_input(self.config_registers["in3_gnd"])
 
-    def _read_sensor_data(self):
+    def _read_all_analog_inputs(self):
         while True:
             try:
                 if self.__data.full():
@@ -308,4 +308,5 @@ class ADS1115:
         return self.__data.get()
 
     def _run(self):
-        threading.Thread(target=self._read_sensor_data, daemon=True).start()
+        threading.Thread(target=self._read_all_analog_inputs,
+                         daemon=True).start()
