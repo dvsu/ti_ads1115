@@ -97,6 +97,7 @@ class ADS1115:
 
     dead_time = 0.01  # time gap between I2C write and read operations
     v_offset = 0.02  # residual voltage at input pin at no load condition, i.e. ideally zero
+    sampling_period = 0.5  # polling period for analog input read
 
     def __init__(self, bus: I2CBus, pga: PGA, address: I2CAddress,
                  logger: str = None,
@@ -130,7 +131,7 @@ class ADS1115:
             else:
                 print(
                     f"'pga' type mismatched. Given type '{type(pga).__name__}'. Expected type '{PGA.__name__}'")
-            
+
             sys.exit(1)
 
         if not isinstance(address, I2CAddress):
@@ -140,7 +141,7 @@ class ADS1115:
             else:
                 print(
                     f"'address' type mismatched. Given type '{type(address).__name__}'. Expected type '{I2CAddress.__name__}'")
-            
+
             sys.exit(1)
 
         self.bus = smbus.SMBus(bus.value)
@@ -153,6 +154,7 @@ class ADS1115:
         self.comparator_polarity = comparator_polarity.value
         self.latching_comparator = latching_comparator.value
         self.comparator_queue = comparator_queue.value
+        self.__data = Queue(maxsize=20)
 
         if not self.is_detected():
             if self.logger:
@@ -169,6 +171,8 @@ class ADS1115:
             self.logger.info("ADS1115 Initialization completed!")
         else:
             print("ADS1115 Initialization completed!")
+
+        self._run()
 
     def is_detected(self) -> bool:
         for device in range(128):
@@ -244,6 +248,18 @@ class ADS1115:
 
         return total / self.sampling
 
+    def read_input_in0_in1(self) -> float:
+        return self.read_analog_input(self.config_registers["in0_in1"])
+
+    def read_input_in0_in3(self) -> float:
+        return self.read_analog_input(self.config_registers["in0_in3"])
+
+    def read_input_in1_in3(self) -> float:
+        return self.read_analog_input(self.config_registers["in1_in3"])
+
+    def read_input_in2_in3(self) -> float:
+        return self.read_analog_input(self.config_registers["in2_in3"])
+
     def read_input_in0_gnd(self) -> float:
         return self.read_analog_input(self.config_registers["in0_gnd"])
 
@@ -255,6 +271,41 @@ class ADS1115:
 
     def read_input_in3_gnd(self) -> float:
         return self.read_analog_input(self.config_registers["in3_gnd"])
+
+    def _read_sensor_data(self):
+        while True:
+            try:
+                if self.__data.full():
+                    self.__data.get()
+
+                self.__data.put({
+                    "input_voltage": {
+                        "in0_in1": round(self.read_input_in0_in1(), 5),
+                        "in0_in3": round(self.read_input_in0_in3(), 5),
+                        "in1_in3": round(self.read_input_in1_in3(), 5),
+                        "in2_in3": round(self.read_input_in2_in3(), 5),
+                        "in0_gnd": round(self.read_input_in0_gnd(), 5),
+                        "in1_gnd": round(self.read_input_in1_gnd(), 5),
+                        "in2_gnd": round(self.read_input_in2_gnd(), 5),
+                        "in3_gnd": round(self.read_input_in3_gnd(), 5)
+                    },
+                    "timestamp": int(datetime.now().timestamp())
+                })
+
+            except Exception as e:
+                if self.logger:
+                    self.logger.warning(f"{type(e).__name__}: {e}")
+                else:
+                    print(f"{type(e).__name__}: {e}")
+
+            finally:
+                sleep(self.sampling_period)
+
+    def get_measurement(self) -> dict:
+        if self.__data.empty():
+            return {}
+
+        return self.__data.get()
 
     def _run(self):
         threading.Thread(target=self._read_sensor_data, daemon=True).start()
