@@ -54,7 +54,7 @@ while True:
 }
 ```
 
-The input voltage consists of 8 key-value pairs. Key name is self-explanatory, i.e. measurement taken between 2 points. The value is the voltage of measurement in `Volt`. As the example of measurement is made between analog input `INx` and `GND`, then key-value pairs we are interested in are
+The `"input_voltage"` key consists of 8 key-value pairs. Key name is self-explanatory, i.e. measurement taken between 2 points. The value is the voltage of measurement in `Volt`. As the example of measurement is made between analog input `INx` and `GND`, then key-value pairs we are interested in are
 
 - `"in0_gnd": 5.03286`
 - `"in1_gnd": 0.33044`
