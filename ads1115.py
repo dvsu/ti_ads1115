@@ -138,7 +138,7 @@ class ADS1115:
 
             sys.exit(1)
 
-        self.bus = smbus.SMBus(bus.value)
+        self.bus = smbus.SMBus(bus)
         self.pga = pga.value
         self.address = address.value
         self.sampling = sampling
