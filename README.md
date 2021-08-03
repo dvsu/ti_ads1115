@@ -22,7 +22,7 @@ from time import sleep
 from ads1115 import ADS1115, PGA, I2CBus, I2CAddress
 
 
-adc = ADS1115(bus=I2CBus.ONE,
+adc = ADS1115(bus=1,
               pga=PGA.FSR_6_144,
               address=I2CAddress.X48)
 

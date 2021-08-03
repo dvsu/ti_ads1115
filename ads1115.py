@@ -8,12 +8,6 @@ from datetime import datetime
 from enum import Enum
 
 
-class I2CBus(Enum):
-    ONE = 1
-    TWO = 2
-    THREE = 3
-
-
 class I2CAddress(Enum):
     X48 = 0x48  # ADDR - GND (default)
     X49 = 0x49  # ADDR - VDD
@@ -99,7 +93,7 @@ class ADS1115:
     v_offset = 0.02  # residual voltage at input pin at no load condition, i.e. ideally zero
     sampling_period = 0.5  # polling period for analog input read
 
-    def __init__(self, bus: I2CBus, pga: PGA, address: I2CAddress,
+    def __init__(self, bus: int, pga: PGA, address: I2CAddress,
                  logger: str = None,
                  sampling: int = 5,
                  operating_mode: OperatingMode = OperatingMode.SINGLE_SHOT,
@@ -114,7 +108,7 @@ class ADS1115:
         if logger:
             self.logger = logging.getLogger(logger)
 
-        if not isinstance(bus, I2CBus):
+        if not isinstance(bus, int):
             if self.logger:
                 self.logger.error(
                     f"'bus' type mismatched. Given type '{type(bus).__name__}'. Expected type '{I2CBus.__name__}'")
